@@ -1,0 +1,146 @@
+export const ServerRoles = [
+  { name: "Founding Member", address: "1131931118791311372", color: "#e41515" },
+  { name: "Creator", address: "1131931586263261274", color: "#2ed431" },
+  { name: "Council Member", address: "1131932336922038305", color: "#c32a2a" },
+  { name: "Content Lead", address: "1131932578664943697", color: "#904617" },
+  { name: "Content Worker", address: "1131935012200140840", color: "#1ebd9e" },
+  { name: "Storage Lead", address: "1131935298671091824", color: "#2ecc71" },
+  { name: "Storage Worker", address: "1131935498076684378", color: "#1F8B4C" },
+  {
+    name: "Distribution Lead",
+    address: "1131936100466839643",
+    color: "#3498DB",
+  },
+  {
+    name: "Distribution Worker",
+    address: "1131936359184089129",
+    color: "#206694",
+  },
+  { name: "Builder Lead", address: "1131936515472240710", color: "#9B59B6" },
+  { name: "Builder Worker", address: "1131936769865162793", color: "#71368A" },
+  { name: "HR Lead", address: "1131936978611478560", color: "#E91E63" },
+  { name: "HR Worker", address: "1131937256056311859", color: "#AD1457" },
+  { name: "Marketing Lead", address: "1131937441658445894", color: "#F1C40F" },
+  {
+    name: "Marketing Worker",
+    address: "1131937635166863441",
+    color: "#C27C0E",
+  },
+  { name: "Forum Lead", address: "1131937807573721158", color: "#E67E22" },
+  { name: "Forum Worker", address: "1131937985030524950", color: "#A84300" },
+  { name: "App Lead", address: "1131938170813034597", color: "#E74C3C" },
+  { name: "App Worker", address: "1131938340686549012", color: "#992D22" },
+  {
+    name: "Membership Worker",
+    address: "1131991986044403732",
+    color: "#607D8B",
+  },
+  { name: "Membership Lead", address: "1131992820400529478", color: "#979C9F" },
+];
+
+export const RoleAddress = {
+  councilMember: "1131932336922038305",
+  foundingMember: "1131931118791311372",
+  creator: "1131931586263261274",
+  contentWorkingGroup: "1131935012200140840",
+  contentWorkingGroupLead: "1131932578664943697",
+  forumWorkingGroup: "1131937985030524950",
+  forumWorkingGroupLead: "1131937807573721158",
+  appWorkingGroup: "1131938340686549012",
+  appWorkingGroupLead: "1131938170813034597",
+  membershipWorkingGroup: "1131991986044403732",
+  membershipWorkingGroupLead: "1131992820400529478",
+  distributionWorkingGroup: "1131936359184089129",
+  distributionWorkingGroupLead: "1131936100466839643",
+  storageWorkingGroup: "1131935498076684378",
+  storageWorkingGroupLead: "1131935298671091824",
+  operationsWorkingGroupAlpha: "1131936769865162793",
+  operationsWorkingGroupAlphaLead: "1131936515472240710",
+  operationsWorkingGroupBeta: "1131937256056311859",
+  operationsWorkingGroupBetaLead: "1131936978611478560",
+  operationsWorkingGroupGamma: "1131937635166863441",
+  operationsWorkingGroupGammaLead: "1131937441658445894",
+};
+
+export const roleDBStatus = [
+  {
+    roleId: RoleAddress.appWorkingGroup,
+    dbName: "appWorkingGroup",
+    isLead: false,
+  },
+  {
+    roleId: RoleAddress.appWorkingGroupLead,
+    dbName: "appWorkingGroup",
+    isLead: true,
+  },
+  {
+    roleId: RoleAddress.contentWorkingGroup,
+    dbName: "contentWorkingGroup",
+    isLead: false,
+  },
+  {
+    roleId: RoleAddress.contentWorkingGroupLead,
+    dbName: "contentWorkingGroup",
+    isLead: true,
+  },
+  {
+    roleId: RoleAddress.distributionWorkingGroup,
+    dbName: "distributionWorkingGroup",
+    isLead: false,
+  },
+  {
+    roleId: RoleAddress.distributionWorkingGroupLead,
+    dbName: "distributionWorkingGroup",
+    isLead: true,
+  },
+  {
+    roleId: RoleAddress.forumWorkingGroup,
+    dbName: "forumWorkingGroup",
+    isLead: false,
+  },
+  {
+    roleId: RoleAddress.forumWorkingGroupLead,
+    dbName: "forumWorkingGroup",
+    isLead: true,
+  },
+  {
+    roleId: RoleAddress.membershipWorkingGroup,
+    dbName: "membershipWorkingGroup",
+    isLead: false,
+  },
+  {
+    roleId: RoleAddress.membershipWorkingGroup,
+    dbName: "membershipWorkingGroup",
+    isLead: true,
+  },
+  {
+    roleId: RoleAddress.operationsWorkingGroupAlpha,
+    dbName: "operationsWorkingGroupAlpha",
+    isLead: false,
+  },
+  {
+    roleId: RoleAddress.operationsWorkingGroupAlpha,
+    dbName: "operationsWorkingGroupAlpha",
+    isLead: true,
+  },
+  {
+    roleId: RoleAddress.operationsWorkingGroupBeta,
+    dbName: "operationsWorkingGroupBeta",
+    isLead: false,
+  },
+  {
+    roleId: RoleAddress.operationsWorkingGroupBetaLead,
+    dbName: "operationsWorkingGroupBeta",
+    isLead: true,
+  },
+  {
+    roleId: RoleAddress.operationsWorkingGroupGamma,
+    dbName: "operationsWorkingGroupGamma",
+    isLead: false,
+  },
+  {
+    roleId: RoleAddress.operationsWorkingGroupGamma,
+    dbName: "operationsWorkingGroupGamma",
+    isLead: true,
+  },
+];
