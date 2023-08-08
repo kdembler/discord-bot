@@ -4,7 +4,6 @@ import {
   ApplicationCommandOptionType,
 } from "discord.js";
 import { Command } from "../Command";
-import { getUserIdtoRoles } from "../database/control";
 
 export const WhoIs: Command = {
   name: "who_is",

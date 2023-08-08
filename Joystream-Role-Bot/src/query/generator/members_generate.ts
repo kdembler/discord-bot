@@ -50,6 +50,7 @@ export interface Member {
   isFoundingMember: boolean;
   isCouncilMember: boolean;
   rootAccount: string;
+  externalResources:externalResources[];
   roles: RoleMember[];
 }
 
@@ -60,6 +61,7 @@ export const asMember = (member: MemberFieldFragment): Member => {
     isFoundingMember: member.isFoundingMember,
     isCouncilMember: member.isCouncilMember,
     rootAccount: member.rootAccount,
+    externalResources:member.externalResources,
     roles: member.roles,
   };
 };
@@ -78,6 +80,10 @@ export async function getMembers() {
           isFoundingMember
           isCouncilMember
           rootAccount
+          externalResources {
+            type
+            value
+          }
           roles {
             status {
               ... on WorkerStatusActive {

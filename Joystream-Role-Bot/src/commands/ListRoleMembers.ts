@@ -4,7 +4,6 @@ import {
   ApplicationCommandOptionType,
 } from "discord.js";
 import { Command } from "../Command";
-import { getMembersOfRole } from "../database/control";
 
 export const ListRoleMembers: Command = {
   name: "list_role_members",

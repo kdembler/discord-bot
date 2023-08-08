@@ -2,9 +2,8 @@ import { Client, ClientOptions } from "discord.js";
 import ready from "./listeners/ready";
 import interactionCreate from "./listeners/interactionCreate";
 import * as dotenv from "dotenv";
-import { connectDatabase } from "./database/connectDatabase";
 import { validateEnv } from "./utils/validateEnv";
-import { setMemberDB } from "./database/control";
+import { setMemberRole } from "./database/control";
 
 dotenv.config();
 
@@ -27,5 +26,5 @@ console.log("Bot is starting...");
   client.login(token);
   ready(client);
   interactionCreate(client);
-  setInterval(setMemberDB, Number(process.env.SYNCH_TIME) * 60000, client);
+  setInterval(setMemberRole, Number(process.env.SYNCH_TIME) * 60000, client);
 })();
