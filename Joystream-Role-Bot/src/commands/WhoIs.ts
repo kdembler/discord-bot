@@ -4,6 +4,7 @@ import {
   ApplicationCommandOptionType,
 } from "discord.js";
 import { Command } from "../Command";
+import { getUserId } from "../controls/control";
 
 export const WhoIs: Command = {
   name: "who_is",
@@ -31,13 +32,27 @@ export const WhoIs: Command = {
     } else {
       await guild.members.fetch();
       const member = guild.members.cache.get(userId);
+
       if (!member) {
         content = "Member not found.";
       } else {
+        const memberId = getUserId(member.user.username);
         const roleNames = member.roles.cache
           .filter((role) => role.name !== "@everyone")
           .map((role) => role.id);
-        content = `<@${userId}>: <@&${roleNames.join(">, <@&")}>`;
+        if (roleNames.length === 0) {
+          content = `<@${userId}>: This user has no on-chain roles`;
+        } else {
+          if (memberId) {
+            content = `The discord user <@${userId}> has the Joystream membership Id  ${
+              memberId.id
+            }  and has the following on-chain roles \n <@&${memberId.roles?.join(
+              ">, <@&"
+            )}>`;
+          } else {
+            content = `The discord user <@${userId}> has no Joystream membership. Please go to Pioneer Governance app and link your discord handle to your Joystream membership by editing your membership data. \n https://pioneerapp.xyz/#/profile/memberships`;
+          }
+        }
       }
     }
 

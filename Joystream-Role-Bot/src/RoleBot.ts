@@ -3,7 +3,7 @@ import ready from "./listeners/ready";
 import interactionCreate from "./listeners/interactionCreate";
 import * as dotenv from "dotenv";
 import { validateEnv } from "./utils/validateEnv";
-import { setMemberRole } from "./database/control";
+import { setMemberRole } from "./controls/control";
 
 dotenv.config();
 
