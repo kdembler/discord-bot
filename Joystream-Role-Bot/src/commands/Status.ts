@@ -27,21 +27,21 @@ export const Status: Command = {
         rpcStatus = `RPC is Active`;
       }
       if (!qn_recive_data || qn_recive_data.length === 0) {
-        status = `Cannot connect to ${process.env.QUERY_NODE}`;
+        status = ` - Cannot connect to ${process.env.QUERY_NODE}`;
       } else {
-        status = "QN is Active";
+        status = " - QN is Active";
       }
 
       if (roleNames.length === 0) {
         emptyRole = `All roles have been filled`;
       } else {
-        emptyRole = `<@&${roleNames.join(">, <@&")}>`;
+        emptyRole = `Empty Roles : <@&${roleNames.join(">, <@&")}>`;
       }
     }
 
     const content: string = `
 
-    Empty Roles : ${emptyRole}
+    ${emptyRole}\n
 
     Status:\n ${status}\n ${rpcStatus}
     
