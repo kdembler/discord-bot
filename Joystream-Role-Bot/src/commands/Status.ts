@@ -31,7 +31,12 @@ export const Status: Command = {
       } else {
         status = "QN is Active";
       }
-      emptyRole = `<@&${roleNames.join(">, <@&")}>`;
+
+      if (roleNames.length === 0) {
+        emptyRole = `All roles have been filled`;
+      } else {
+        emptyRole = `<@&${roleNames.join(">, <@&")}>`;
+      }
     }
 
     const content: string = `
