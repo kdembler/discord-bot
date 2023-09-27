@@ -101,11 +101,13 @@ export const setMemberRole = async (
 
   qn_recive_data = buffer;
 
-  buffer.map((filterqn) => {
+  buffer.map(async (filterqn) => {
     // set role to discord server.
     const discord_handle = filterqn.externalResources.filter(
       (data) => data.type === "DISCORD"
     );
+
+    // remove roles of user
 
     const member = members
       .filter((d) => d.user.username === discord_handle[0].value)
@@ -113,7 +115,20 @@ export const setMemberRole = async (
         return member;
       });
 
-    if (!member) return;
+    try {
+      members.forEach(async (member) => {
+        await member.roles.remove(member.roles.cache);
+        console.log(`Roles of member ${member.user.tag} have been removed.`);
+      });
+    } catch (error) {
+      console.error("Error removing member roles:", error);
+    }
+
+    if (!member) {
+      return;
+    }
+
+    (await member[0]).roles.add(RoleAddress.membershipLinked);
 
     filterqn.roles.map(async (groupID) => {
       if (!roleMap[groupID.groupId]) return;

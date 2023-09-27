@@ -20,4 +20,5 @@ export const RoleAddress = {
   operationsWorkingGroupBetaLead: "1131936978611478560",
   operationsWorkingGroupGamma: "1131937635166863441",
   operationsWorkingGroupGammaLead: "1131937441658445894",
+  membershipLinked: "1131937441658445895",
 };
