@@ -41,7 +41,11 @@ export const ListRoleMembers: Command = {
           member.roles.cache.has(role.id)
         );
         const memberNames = members.map((member) => member.user.id);
-        content = `<@&${roleId}>: <@${memberNames.join(">, <@")}>`;
+        if (memberNames.length === 0) {
+          content = `No members currently have the <@&${roleId}> :shushing_face: `;
+        } else {
+          content = `<@&${roleId}>: <@${memberNames.join(">, <@")}>`;
+        }
       }
     }
 
