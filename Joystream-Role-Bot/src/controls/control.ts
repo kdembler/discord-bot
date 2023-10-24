@@ -115,14 +115,14 @@ export const setMemberRole = async (
         return member;
       });
 
-    try {
-      members.forEach(async (member) => {
-        await member.roles.remove(member.roles.cache);
-        console.log(`Roles of member ${member.user.tag} have been removed.`);
-      });
-    } catch (error) {
-      console.error("Error removing member roles:", error);
-    }
+    // try {
+    //   members.forEach(async (member) => {
+    //     await member.roles.remove(member.roles.cache);
+    //     console.log(`Roles of member ${member.user.tag} have been removed.`);
+    //   });
+    // } catch (error) {
+    //   console.error("Error removing member roles:", error);
+    // }
 
     if (!member) {
       return;
