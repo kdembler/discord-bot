@@ -10,7 +10,8 @@ import { upDateBlockNumber } from "../hook/blockCalc";
 
 export let qn_recive_data: MemberFieldFragment[] = [];
 
-const provider = new WsProvider(process.env.RPC_URL);
+
+
 
 type RoleMap = {
   [key: string]: [string, string];
@@ -59,6 +60,8 @@ export const setMemberRole = async (
   client: Client,
   interaction: CommandInteraction
 ): Promise<void> => {
+
+  const provider = new WsProvider(process.env.RPC_URL);
   const Qndata: MemberFieldFragment[] = await getMembers();
 
   const api = await ApiPromise.create({ provider });
@@ -75,6 +78,7 @@ export const setMemberRole = async (
   });
 
   const guild = client.guilds.cache.get(String(process.env.SERVER_ID));
+
   if (!guild) {
     console.log("Guild not found.");
     return;
@@ -110,7 +114,11 @@ export const setMemberRole = async (
     // remove roles of user
 
     const member = members
-      .filter((d) => d.user.username === discord_handle[0].value)
+      .filter((d) => {
+
+        console.log(d.user.username, discord_handle[0].value);
+        return d.user.username === discord_handle[0].value
+      })
       .map(async (member) => {
         return member;
       });
