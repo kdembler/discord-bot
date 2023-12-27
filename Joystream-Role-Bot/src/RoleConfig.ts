@@ -18,7 +18,7 @@ export const RoleAddress = {
   operationsWorkingGroupAlphaLead: "979002290939777024",
   operationsWorkingGroupBeta: "1116732390434426941",
   operationsWorkingGroupBetaLead: "979002096240185405",
-  operationsWorkingGroupGamma: "942455426891542578",
+  operationsWorkingGroupGamma: "979002458074386535",
   operationsWorkingGroupGammaLead: "942455426891542578",
   membershipLinked: "979700961125748756",
   // councilMember: "1131932336922038305",

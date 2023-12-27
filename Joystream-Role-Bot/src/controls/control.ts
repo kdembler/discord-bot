@@ -10,9 +10,6 @@ import { upDateBlockNumber } from "../hook/blockCalc";
 
 export let qn_recive_data: MemberFieldFragment[] = [];
 
-
-
-
 type RoleMap = {
   [key: string]: [string, string];
 };
@@ -56,12 +53,13 @@ const roleMap: RoleMap = {
   ],
 };
 
+const provider = new WsProvider("wss://rpc.joystream.org:9944");
+
 export const setMemberRole = async (
   client: Client,
   interaction: CommandInteraction
 ): Promise<void> => {
 
-  const provider = new WsProvider(process.env.RPC_URL);
   const Qndata: MemberFieldFragment[] = await getMembers();
 
   const api = await ApiPromise.create({ provider });
@@ -115,26 +113,32 @@ export const setMemberRole = async (
 
     const member = members
       .filter((d) => {
-
-        console.log(d.user.username, discord_handle[0].value);
         return d.user.username === discord_handle[0].value
       })
       .map(async (member) => {
         return member;
       });
 
+    if (!member) {
+      return;
+    }
+
+    // const role = await guild.roles.fetch(RoleAddress.operationsWorkingGroupGammaLead);
+    // if (role) {
+    //   console.log((await member[0]).user.username);
+    //   (await member[0]).roles.remove(role);
+    // }
+
     // try {
     //   members.forEach(async (member) => {
-    //     await member.roles.remove(member.roles.cache);
-    //     console.log(`Roles of member ${member.user.tag} have been removed.`);
+    //     console.log(member.roles.cache.map(role => role.id))
+    //     // await member.roles.remove(member.roles.cache);
+    //     console.log(`Roles of member ${member.user.username} have been removed.`);
     //   });
     // } catch (error) {
     //   console.error("Error removing member roles:", error);
     // }
 
-    if (!member) {
-      return;
-    }
 
     (await member[0]).roles.add(RoleAddress.membershipLinked);
 
@@ -155,12 +159,12 @@ export const setMemberRole = async (
         : (await member[0]).roles.remove(role);
     });
 
-    /// concile, founding, creator part  ///
+    // /// concile, founding, creator part  ///
     const qnRoleData = [
-      {
-        roleAddress: RoleAddress.foundingMember,
-        isState: filterqn.isFoundingMember,
-      },
+      // {
+      //   roleAddress: RoleAddress.foundingMember,
+      //   isState: filterqn.isFoundingMember,
+      // },
       {
         roleAddress: RoleAddress.councilMember,
         isState: filterqn.isCouncilMember,
@@ -171,8 +175,10 @@ export const setMemberRole = async (
       },
     ];
 
+
     qnRoleData.map(async (qn) => {
       const role = await guild.roles.fetch(qn.roleAddress);
+
       if (!role) {
         console.log(`<@&${qn.roleAddress}> Role not found`);
         return;
