@@ -159,10 +159,10 @@ export const setMemberRole = async (client: Client): Promise<void> => {
 
     // /// concile, founding, creator part  ///
     const specialRoles = [
-      {
-        roleId: RoleAddress.foundingMember,
-        isActive: qnMember.isFoundingMember,
-      },
+      // {
+      //   roleId: RoleAddress.foundingMember,
+      //   isActive: qnMember.isFoundingMember,
+      // },
       {
         roleId: RoleAddress.councilMember,
         isActive: qnMember.isCouncilMember,
