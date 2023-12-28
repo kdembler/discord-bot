@@ -10,8 +10,6 @@ import { upDateBlockNumber } from "../hook/blockCalc";
 
 export let qn_recive_data: MemberFieldFragment[] = [];
 
-const provider = new WsProvider(process.env.RPC_URL);
-
 type RoleMap = {
   [key: string]: [string, string];
 };
@@ -55,10 +53,9 @@ const roleMap: RoleMap = {
   ],
 };
 
-export const setMemberRole = async (
-  client: Client,
-  interaction: CommandInteraction
-): Promise<void> => {
+const provider = new WsProvider("wss://rpc.joystream.org:9944");
+
+export const setMemberRole = async (client: Client): Promise<void> => {
   const Qndata: MemberFieldFragment[] = await getMembers();
 
   const api = await ApiPromise.create({ provider });
@@ -75,105 +72,124 @@ export const setMemberRole = async (
   });
 
   const guild = client.guilds.cache.get(String(process.env.SERVER_ID));
+
   if (!guild) {
     console.log("Guild not found.");
     return;
   }
 
   await guild.members.fetch();
-  const members = guild.members.cache.filter((member) => !member.user.bot);
+  const discordMembers = guild.members.cache.filter(
+    (member) => !member.user.bot,
+  );
 
-  let buffer: MemberFieldFragment[] = [];
-
-  Qndata.map((qndata) => {
-    qndata.externalResources
-      .filter((qndata) => qndata.type === "DISCORD")
-      .map((exteranldata) => {
-        members
-          .filter((member) => member.user.username === exteranldata.value)
-          .map(() => {
-            buffer.push(qndata);
-          });
-      });
-  });
-
-  if (!buffer || buffer.length === 0) return;
-
-  qn_recive_data = buffer;
-
-  buffer.map(async (filterqn) => {
-    // set role to discord server.
-    const discord_handle = filterqn.externalResources.filter(
-      (data) => data.type === "DISCORD"
+  const qnMembers = Qndata.flatMap((qnMember) => {
+    const hasDiscordHandle = qnMember.externalResources.some(
+      (data) => data.type === "DISCORD",
     );
 
-    // remove roles of user
+    if (!hasDiscordHandle) return [];
 
-    const member = members
-      .filter((d) => d.user.username === discord_handle[0].value)
-      .map(async (member) => {
-        return member;
-      });
+    return qnMember;
+  });
 
-    try {
-      members.forEach(async (member) => {
-        await member.roles.remove(member.roles.cache);
-        console.log(`Roles of member ${member.user.tag} have been removed.`);
-      });
-    } catch (error) {
-      console.error("Error removing member roles:", error);
-    }
+  // TODO: refactor - this is currently used to share QN data with other commands
+  qn_recive_data = qnMembers;
 
-    if (!member) {
+  if (qnMembers.length === 0) return;
+
+  qnMembers.map(async (qnMember) => {
+    const memberDiscordHandle = qnMember.externalResources.find(
+      (data) => data.type === "DISCORD",
+    )?.value;
+
+    if (!memberDiscordHandle) {
+      console.log("Discord handle not found");
       return;
     }
 
-    (await member[0]).roles.add(RoleAddress.membershipLinked);
+    const discordMember = discordMembers.find(
+      (member) => member.user.username === memberDiscordHandle,
+    );
 
-    filterqn.roles.map(async (groupID) => {
-      if (!roleMap[groupID.groupId]) return;
+    if (!discordMember) {
+      console.log(
+        `Discord member "${memberDiscordHandle}" not found for QN member "${qnMember.handle}"`,
+      );
+      return;
+    }
 
-      const [leadAddress, workerAddress] = roleMap[groupID.groupId];
-      const address = groupID.isLead ? leadAddress : workerAddress;
-      const role = await guild.roles.fetch(address);
+    // const role = await guild.roles.fetch(RoleAddress.operationsWorkingGroupGammaLead);
+    // if (role) {
+    //   console.log((await member[0]).user.username);
+    //   (await member[0]).roles.remove(role);
+    // }
+
+    // try {
+    //   members.forEach(async (member) => {
+    //     console.log(member.roles.cache.map(role => role.id))
+    //     // await member.roles.remove(member.roles.cache);
+    //     console.log(`Roles of member ${member.user.username} have been removed.`);
+    //   });
+    // } catch (error) {
+    //   console.error("Error removing member roles:", error);
+    // }
+
+    await discordMember.roles.add(RoleAddress.membershipLinked);
+
+    const roleUpdatePromises = qnMember.roles.map(async (memberRole) => {
+      const memberRoleGroupId = memberRole.groupId;
+      const mappedRoles = roleMap[memberRoleGroupId];
+      if (!mappedRoles) return;
+
+      const [leadRoleId, workerRoleId] = mappedRoles;
+      const roleId = memberRole.isLead ? leadRoleId : workerRoleId;
+      const role = await guild.roles.fetch(roleId);
 
       if (!role) {
-        console.log(`<@&${address}> Role not found`);
+        console.log(`<@&${roleId}> Role not found`);
         return;
       }
 
-      groupID.status.__typename === "WorkerStatusActive"
-        ? (await member[0]).roles.add(role)
-        : (await member[0]).roles.remove(role);
+      const roleUpdatePromise =
+        memberRole.status.__typename === "WorkerStatusActive"
+          ? discordMember.roles.add(role)
+          : discordMember.roles.remove(role);
+      await roleUpdatePromise;
     });
 
-    /// concile, founding, creator part  ///
-    const qnRoleData = [
+    await Promise.all(roleUpdatePromises);
+
+    // /// concile, founding, creator part  ///
+    const specialRoles = [
+      // {
+      //   roleId: RoleAddress.foundingMember,
+      //   isActive: filterqn.isFoundingMember,
+      // },
       {
-        roleAddress: RoleAddress.foundingMember,
-        isState: filterqn.isFoundingMember,
+        roleId: RoleAddress.councilMember,
+        isActive: qnMember.isCouncilMember,
       },
       {
-        roleAddress: RoleAddress.councilMember,
-        isState: filterqn.isCouncilMember,
-      },
-      {
-        roleAddress: RoleAddress.creator,
-        isState: false, // update part //      ----------?
+        roleId: RoleAddress.creator,
+        isActive: false, // TODO - ???
       },
     ];
 
-    qnRoleData.map(async (qn) => {
-      const role = await guild.roles.fetch(qn.roleAddress);
+    const specialRolesPromises = specialRoles.map(async (specialRole) => {
+      const role = await guild.roles.fetch(specialRole.roleId);
+
       if (!role) {
-        console.log(`<@&${qn.roleAddress}> Role not found`);
+        console.log(`<@&${specialRole.roleId}> Role not found`);
         return;
       }
 
-      qn.isState
-        ? (await member[0]).roles.add(role)
-        : (await member[0]).roles.remove(role);
+      const roleUpdatePromise = specialRole.isActive
+        ? discordMember.roles.add(role)
+        : discordMember.roles.remove(role);
+      await roleUpdatePromise;
     });
+    await Promise.all(specialRolesPromises);
   });
 };
 
@@ -205,7 +221,7 @@ export const getUserId = (userId: string): MemberRolesAndId | undefined => {
         if (data.isCouncilMember) role.push(RoleAddress.councilMember);
 
         id.push(data);
-      })
+      }),
   );
 
   if (!id || id.length === 0) return;
