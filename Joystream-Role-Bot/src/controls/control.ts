@@ -98,7 +98,7 @@ export const setMemberRole = async (client: Client): Promise<void> => {
 
   if (qnMembers.length === 0) return;
 
-  qnMembers.map(async (qnMember) => {
+  const membersPromises = qnMembers.map(async (qnMember) => {
     const memberDiscordHandle = qnMember.externalResources.find(
       (data) => data.type === "DISCORD",
     )?.value;
@@ -113,9 +113,6 @@ export const setMemberRole = async (client: Client): Promise<void> => {
     );
 
     if (!discordMember) {
-      console.log(
-        `Discord member "${memberDiscordHandle}" not found for QN member "${qnMember.handle}"`,
-      );
       return;
     }
 
@@ -162,10 +159,10 @@ export const setMemberRole = async (client: Client): Promise<void> => {
 
     // /// concile, founding, creator part  ///
     const specialRoles = [
-      // {
-      //   roleId: RoleAddress.foundingMember,
-      //   isActive: filterqn.isFoundingMember,
-      // },
+      {
+        roleId: RoleAddress.foundingMember,
+        isActive: qnMember.isFoundingMember,
+      },
       {
         roleId: RoleAddress.councilMember,
         isActive: qnMember.isCouncilMember,
@@ -191,6 +188,8 @@ export const setMemberRole = async (client: Client): Promise<void> => {
     });
     await Promise.all(specialRolesPromises);
   });
+
+  await Promise.all(membersPromises);
 };
 
 interface MemberRolesAndId {
