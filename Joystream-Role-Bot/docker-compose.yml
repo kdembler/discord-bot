@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  role-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: discord-role-bot
+    restart: always
+    environment:
+      - SERVER_ID=${SERVER_ID}
+      - SERVER_TOKEN=${SERVER_TOKEN}
+      - VERSION=${VERSION}
+      - QUERY_NODE=${QUERY_NODE}
+      - RPC_URL=${RPC_URL}
+      - SYNCH_TIME=${SYNCH_TIME}
