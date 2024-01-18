@@ -14,6 +14,12 @@ type RoleMap = {
   [key: string]: [string, string];
 };
 
+type GetWorkingState = {
+  lead: boolean,
+  workingGroups: string,
+  active: boolean,
+}
+
 const roleMap: RoleMap = {
   contentWorkingGroup: [
     RoleAddress.contentWorkingGroupLead,
@@ -79,6 +85,7 @@ export const setMemberRole = async (client: Client): Promise<void> => {
   }
 
   await guild.members.fetch();
+
   const discordMembers = guild.members.cache.filter(
     (member) => !member.user.bot,
   );
@@ -97,6 +104,21 @@ export const setMemberRole = async (client: Client): Promise<void> => {
   qn_recive_data = qnMembers;
 
   if (qnMembers.length === 0) return;
+
+  const daoRole = await guild.roles.fetch(RoleAddress.DAO);
+
+  if (!daoRole) {
+    console.log(`<@&${daoRole}> Role not found`);
+    return;
+  }
+
+  const linkRole = await guild.roles.fetch(RoleAddress.membershipLinked);
+
+  if (!linkRole) {
+    console.log(`<@&${RoleAddress.membershipLinked}> Role not found`);
+    return
+  }
+
 
   const membersPromises = qnMembers.map(async (qnMember) => {
     const memberDiscordHandle = qnMember.externalResources.find(
@@ -132,32 +154,58 @@ export const setMemberRole = async (client: Client): Promise<void> => {
     //   console.error("Error removing member roles:", error);
     // }
 
-    await discordMember.roles.add(RoleAddress.membershipLinked);
 
-    const roleUpdatePromises = qnMember.roles.map(async (memberRole) => {
-      const memberRoleGroupId = memberRole.groupId;
-      const mappedRoles = roleMap[memberRoleGroupId];
-      if (!mappedRoles) return;
+    const discordMemberAllRolesIds = discordMember.roles.cache.map((role) => role.id)
+    const roleAddressArray: string[] = Object.values(RoleAddress);
+    const discordMemberRolesIds = discordMemberAllRolesIds.filter((item) => roleAddressArray.includes(item))
 
+    if (!discordMemberRolesIds.find((id: string) => id === RoleAddress.membershipLinked)) {
+      await discordMember.roles.add(linkRole);
+    }
+
+    const qnMemberActiveRoles = qnMember.roles.filter(group => group.status.__typename === "WorkerStatusActive");
+
+    let worker = false;
+
+    let qnMemberRole: string[] = [];
+
+    qnMemberActiveRoles.forEach(async (work) => {
+      const mappedRoles = roleMap[work.groupId];
+
+      if (!mappedRoles) {
+        return;
+      }
       const [leadRoleId, workerRoleId] = mappedRoles;
-      const roleId = memberRole.isLead ? leadRoleId : workerRoleId;
+
+      const roleId = work.isLead ? leadRoleId : workerRoleId;
+
       const role = await guild.roles.fetch(roleId);
 
       if (!role) {
         console.log(`<@&${roleId}> Role not found`);
         return;
       }
+      if (!discordMemberRolesIds.find((id: string) => id === roleId)) {
+        discordMember.roles.add(role);
+      }
+      qnMemberRole.push(roleId);
+      worker = true;
+    })
 
-      const roleUpdatePromise =
-        memberRole.status.__typename === "WorkerStatusActive"
-          ? discordMember.roles.add(role)
-          : discordMember.roles.remove(role);
-      await roleUpdatePromise;
-    });
+    await Promise.all(qnMemberActiveRoles);
 
-    await Promise.all(roleUpdatePromises);
+    const terminatedRoles = discordMemberRolesIds.filter(item => !qnMemberRole.includes(item))
+    const terminatedRolesPromises = terminatedRoles.map(id => discordMember.roles.remove(id));
+    await Promise.all(terminatedRolesPromises);
 
-    // /// concile, founding, creator part  ///
+    if ((worker || qnMember.isCouncilMember) && !discordMemberRolesIds.find((id: string) => id === RoleAddress.DAO)) {
+      discordMember.roles.add(daoRole)
+    }
+    if (!(worker || qnMember.isCouncilMember) && discordMemberRolesIds.find((id: string) => id === RoleAddress.DAO)) {
+      discordMember.roles.remove(daoRole)
+    }
+
+    /// concile, founding, creator part  ///
     const specialRoles = [
       // {
       //   roleId: RoleAddress.foundingMember,
@@ -174,6 +222,7 @@ export const setMemberRole = async (client: Client): Promise<void> => {
     ];
 
     const specialRolesPromises = specialRoles.map(async (specialRole) => {
+
       const role = await guild.roles.fetch(specialRole.roleId);
 
       if (!role) {
@@ -181,11 +230,16 @@ export const setMemberRole = async (client: Client): Promise<void> => {
         return;
       }
 
-      const roleUpdatePromise = specialRole.isActive
-        ? discordMember.roles.add(role)
-        : discordMember.roles.remove(role);
-      await roleUpdatePromise;
+      if (specialRole.isActive && !discordMemberRolesIds.find((id: string) => id === specialRole.roleId)) {
+        discordMember.roles.add(role);
+      }
+
+      if (!specialRole.isActive && discordMemberRolesIds.find((id: string) => id === specialRole.roleId)) {
+        discordMember.roles.remove(role);
+      }
+
     });
+
     await Promise.all(specialRolesPromises);
   });
 

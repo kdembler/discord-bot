@@ -21,4 +21,5 @@ export const RoleAddress = {
   operationsWorkingGroupGamma: "979002458074386535",
   operationsWorkingGroupGammaLead: "942455426891542578",
   membershipLinked: "979700961125748756",
+  DAO: "1194725039149420584"
 };
