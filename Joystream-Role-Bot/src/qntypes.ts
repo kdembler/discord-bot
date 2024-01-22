@@ -14851,6 +14851,7 @@ export type MemberMetadata = BaseGraphQlObject & {
   deletedById?: Maybe<Scalars['ID']['output']>;
   externalResources?: Maybe<Array<MembershipExternalResource>>;
   id: Scalars['ID']['output'];
+  isVerifiedValidator?: Maybe<Scalars['Boolean']['output']>;
   member?: Maybe<Membership>;
   membercreatedeventmetadata?: Maybe<Array<MemberCreatedEvent>>;
   memberinvitedeventmetadata?: Maybe<Array<MemberInvitedEvent>>;
@@ -14874,6 +14875,7 @@ export type MemberMetadataConnection = {
 export type MemberMetadataCreateInput = {
   about?: InputMaybe<Scalars['String']['input']>;
   avatar: Scalars['JSONObject']['input'];
+  isVerifiedValidator?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -14890,6 +14892,8 @@ export enum MemberMetadataOrderByInput {
   CreatedAtDesc = 'createdAt_DESC',
   DeletedAtAsc = 'deletedAt_ASC',
   DeletedAtDesc = 'deletedAt_DESC',
+  IsVerifiedValidatorAsc = 'isVerifiedValidator_ASC',
+  IsVerifiedValidatorDesc = 'isVerifiedValidator_DESC',
   NameAsc = 'name_ASC',
   NameDesc = 'name_DESC',
   UpdatedAtAsc = 'updatedAt_ASC',
@@ -14899,6 +14903,7 @@ export enum MemberMetadataOrderByInput {
 export type MemberMetadataUpdateInput = {
   about?: InputMaybe<Scalars['String']['input']>;
   avatar?: InputMaybe<Scalars['JSONObject']['input']>;
+  isVerifiedValidator?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -14932,6 +14937,8 @@ export type MemberMetadataWhereInput = {
   externalResources_some?: InputMaybe<MembershipExternalResourceWhereInput>;
   id_eq?: InputMaybe<Scalars['ID']['input']>;
   id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  isVerifiedValidator_eq?: InputMaybe<Scalars['Boolean']['input']>;
+  isVerifiedValidator_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   member?: InputMaybe<MembershipWhereInput>;
   membercreatedeventmetadata_every?: InputMaybe<MemberCreatedEventWhereInput>;
   membercreatedeventmetadata_none?: InputMaybe<MemberCreatedEventWhereInput>;
@@ -14983,8 +14990,10 @@ export type MemberProfileUpdatedEvent = BaseGraphQlObject & Event & {
   memberId: Scalars['String']['output'];
   /** Network the block was produced in */
   network: Network;
-  /** New member handle. Null means no new value was provided. */
+  /** New member handle (utf-8 string). Null means no new value was provided. */
   newHandle?: Maybe<Scalars['String']['output']>;
+  /** New member handle (raw hex string). Null means no new value was provided. */
+  newHandleRaw?: Maybe<Scalars['String']['output']>;
   newMetadata: MemberMetadata;
   newMetadataId: Scalars['String']['output'];
   /** Filtering options for interface implementers */
@@ -15008,6 +15017,7 @@ export type MemberProfileUpdatedEventCreateInput = {
   member: Scalars['ID']['input'];
   network: Network;
   newHandle?: InputMaybe<Scalars['String']['input']>;
+  newHandleRaw?: InputMaybe<Scalars['String']['input']>;
   newMetadata: Scalars['ID']['input'];
 };
 
@@ -15032,6 +15042,8 @@ export enum MemberProfileUpdatedEventOrderByInput {
   MemberDesc = 'member_DESC',
   NetworkAsc = 'network_ASC',
   NetworkDesc = 'network_DESC',
+  NewHandleRawAsc = 'newHandleRaw_ASC',
+  NewHandleRawDesc = 'newHandleRaw_DESC',
   NewHandleAsc = 'newHandle_ASC',
   NewHandleDesc = 'newHandle_DESC',
   NewMetadataAsc = 'newMetadata_ASC',
@@ -15047,6 +15059,7 @@ export type MemberProfileUpdatedEventUpdateInput = {
   member?: InputMaybe<Scalars['ID']['input']>;
   network?: InputMaybe<Network>;
   newHandle?: InputMaybe<Scalars['String']['input']>;
+  newHandleRaw?: InputMaybe<Scalars['String']['input']>;
   newMetadata?: InputMaybe<Scalars['ID']['input']>;
 };
 
@@ -15091,6 +15104,11 @@ export type MemberProfileUpdatedEventWhereInput = {
   member?: InputMaybe<MembershipWhereInput>;
   network_eq?: InputMaybe<Network>;
   network_in?: InputMaybe<Array<Network>>;
+  newHandleRaw_contains?: InputMaybe<Scalars['String']['input']>;
+  newHandleRaw_endsWith?: InputMaybe<Scalars['String']['input']>;
+  newHandleRaw_eq?: InputMaybe<Scalars['String']['input']>;
+  newHandleRaw_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  newHandleRaw_startsWith?: InputMaybe<Scalars['String']['input']>;
   newHandle_contains?: InputMaybe<Scalars['String']['input']>;
   newHandle_endsWith?: InputMaybe<Scalars['String']['input']>;
   newHandle_eq?: InputMaybe<Scalars['String']['input']>;
@@ -15309,8 +15327,10 @@ export type Membership = BaseGraphQlObject & {
   externalResources?: Maybe<Array<MembershipExternalResource>>;
   forumpostauthor?: Maybe<Array<ForumPost>>;
   forumthreadauthor?: Maybe<Array<ForumThread>>;
-  /** The unique handle chosen by member */
+  /** The unique handle chosen by member as utf-8 */
   handle: Scalars['String']['output'];
+  /** The unique handle chosen by member as raw hex representation */
+  handleRaw: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   /** Current count of invites left to send. */
   inviteCount: Scalars['Int']['output'];
@@ -15568,6 +15588,7 @@ export type MembershipCreateInput = {
   controllerAccount: Scalars['String']['input'];
   entry: Scalars['JSONObject']['input'];
   handle: Scalars['String']['input'];
+  handleRaw: Scalars['String']['input'];
   inviteCount: Scalars['Float']['input'];
   invitedBy?: InputMaybe<Scalars['ID']['input']>;
   isCouncilMember: Scalars['Boolean']['input'];
@@ -15675,8 +15696,10 @@ export enum MembershipExternalResourceType {
   Discord = 'DISCORD',
   Email = 'EMAIL',
   Facebook = 'FACEBOOK',
+  Github = 'GITHUB',
   Hyperlink = 'HYPERLINK',
   Irc = 'IRC',
+  Linkedin = 'LINKEDIN',
   Matrix = 'MATRIX',
   Telegram = 'TELEGRAM',
   Twitter = 'TWITTER',
@@ -15908,6 +15931,8 @@ export enum MembershipOrderByInput {
   CreatedAtDesc = 'createdAt_DESC',
   DeletedAtAsc = 'deletedAt_ASC',
   DeletedAtDesc = 'deletedAt_DESC',
+  HandleRawAsc = 'handleRaw_ASC',
+  HandleRawDesc = 'handleRaw_DESC',
   HandleAsc = 'handle_ASC',
   HandleDesc = 'handle_DESC',
   InviteCountAsc = 'inviteCount_ASC',
@@ -16068,6 +16093,7 @@ export type MembershipUpdateInput = {
   controllerAccount?: InputMaybe<Scalars['String']['input']>;
   entry?: InputMaybe<Scalars['JSONObject']['input']>;
   handle?: InputMaybe<Scalars['String']['input']>;
+  handleRaw?: InputMaybe<Scalars['String']['input']>;
   inviteCount?: InputMaybe<Scalars['Float']['input']>;
   invitedBy?: InputMaybe<Scalars['ID']['input']>;
   isCouncilMember?: InputMaybe<Scalars['Boolean']['input']>;
@@ -16212,6 +16238,11 @@ export type MembershipWhereInput = {
   forumthreadauthor_every?: InputMaybe<ForumThreadWhereInput>;
   forumthreadauthor_none?: InputMaybe<ForumThreadWhereInput>;
   forumthreadauthor_some?: InputMaybe<ForumThreadWhereInput>;
+  handleRaw_contains?: InputMaybe<Scalars['String']['input']>;
+  handleRaw_endsWith?: InputMaybe<Scalars['String']['input']>;
+  handleRaw_eq?: InputMaybe<Scalars['String']['input']>;
+  handleRaw_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  handleRaw_startsWith?: InputMaybe<Scalars['String']['input']>;
   handle_contains?: InputMaybe<Scalars['String']['input']>;
   handle_endsWith?: InputMaybe<Scalars['String']['input']>;
   handle_eq?: InputMaybe<Scalars['String']['input']>;
@@ -16399,7 +16430,7 @@ export type MembershipWhereInput = {
 };
 
 export type MembershipWhereUniqueInput = {
-  handle?: InputMaybe<Scalars['String']['input']>;
+  handleRaw?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['ID']['input']>;
 };
 
@@ -20594,7 +20625,7 @@ export type ProposalDecisionMadeEventWhereUniqueInput = {
 
 export type ProposalDecisionStatus = ProposalStatusCanceledByRuntime | ProposalStatusCancelled | ProposalStatusDormant | ProposalStatusExpired | ProposalStatusGracing | ProposalStatusRejected | ProposalStatusSlashed | ProposalStatusVetoed;
 
-export type ProposalDetails = AmendConstitutionProposalDetails | CancelWorkingGroupLeadOpeningProposalDetails | CreateWorkingGroupLeadOpeningProposalDetails | DecreaseWorkingGroupLeadStakeProposalDetails | FillWorkingGroupLeadOpeningProposalDetails | FundingRequestProposalDetails | RuntimeUpgradeProposalDetails | SetCouncilBudgetIncrementProposalDetails | SetCouncilorRewardProposalDetails | SetInitialInvitationBalanceProposalDetails | SetInitialInvitationCountProposalDetails | SetMaxValidatorCountProposalDetails | SetMembershipLeadInvitationQuotaProposalDetails | SetMembershipPriceProposalDetails | SetReferralCutProposalDetails | SetWorkingGroupLeadRewardProposalDetails | SignalProposalDetails | SlashWorkingGroupLeadProposalDetails | TerminateWorkingGroupLeadProposalDetails | UpdateChannelPayoutsProposalDetails | UpdateWorkingGroupBudgetProposalDetails | VetoProposalDetails;
+export type ProposalDetails = AmendConstitutionProposalDetails | CancelWorkingGroupLeadOpeningProposalDetails | CreateWorkingGroupLeadOpeningProposalDetails | DecreaseWorkingGroupLeadStakeProposalDetails | FillWorkingGroupLeadOpeningProposalDetails | FundingRequestProposalDetails | RuntimeUpgradeProposalDetails | SetCouncilBudgetIncrementProposalDetails | SetCouncilorRewardProposalDetails | SetInitialInvitationBalanceProposalDetails | SetInitialInvitationCountProposalDetails | SetMaxValidatorCountProposalDetails | SetMembershipLeadInvitationQuotaProposalDetails | SetMembershipPriceProposalDetails | SetReferralCutProposalDetails | SetWorkingGroupLeadRewardProposalDetails | SignalProposalDetails | SlashWorkingGroupLeadProposalDetails | TerminateWorkingGroupLeadProposalDetails | UpdateChannelPayoutsProposalDetails | UpdateGlobalNftLimitProposalDetails | UpdateWorkingGroupBudgetProposalDetails | VetoProposalDetails;
 
 export type ProposalDiscussionPost = BaseGraphQlObject & {
   __typename?: 'ProposalDiscussionPost';
@@ -30404,6 +30435,8 @@ export type StorageBag = BaseGraphQlObject & {
   distributionBuckets: Array<DistributionBucket>;
   id: Scalars['ID']['output'];
   objects: Array<StorageDataObject>;
+  /** Total size of data objects in Bag */
+  objectsSize: Scalars['BigInt']['output'];
   /** Owner of the storage bag */
   owner: StorageBagOwner;
   storageBuckets: Array<StorageBucket>;
@@ -30420,6 +30453,7 @@ export type StorageBagConnection = {
 };
 
 export type StorageBagCreateInput = {
+  objectsSize: Scalars['String']['input'];
   owner: Scalars['JSONObject']['input'];
 };
 
@@ -30434,6 +30468,8 @@ export enum StorageBagOrderByInput {
   CreatedAtDesc = 'createdAt_DESC',
   DeletedAtAsc = 'deletedAt_ASC',
   DeletedAtDesc = 'deletedAt_DESC',
+  ObjectsSizeAsc = 'objectsSize_ASC',
+  ObjectsSizeDesc = 'objectsSize_DESC',
   UpdatedAtAsc = 'updatedAt_ASC',
   UpdatedAtDesc = 'updatedAt_DESC'
 }
@@ -30466,6 +30502,7 @@ export type StorageBagOwnerWorkingGroup = {
 };
 
 export type StorageBagUpdateInput = {
+  objectsSize?: InputMaybe<Scalars['String']['input']>;
   owner?: InputMaybe<Scalars['JSONObject']['input']>;
 };
 
@@ -30493,6 +30530,12 @@ export type StorageBagWhereInput = {
   distributionBuckets_some?: InputMaybe<DistributionBucketWhereInput>;
   id_eq?: InputMaybe<Scalars['ID']['input']>;
   id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  objectsSize_eq?: InputMaybe<Scalars['BigInt']['input']>;
+  objectsSize_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  objectsSize_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  objectsSize_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  objectsSize_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  objectsSize_lte?: InputMaybe<Scalars['BigInt']['input']>;
   objects_every?: InputMaybe<StorageDataObjectWhereInput>;
   objects_none?: InputMaybe<StorageDataObjectWhereInput>;
   objects_some?: InputMaybe<StorageDataObjectWhereInput>;
@@ -32282,6 +32325,14 @@ export type UpdateChannelPayoutsProposalDetails = {
   minCashoutAllowed?: Maybe<Scalars['BigInt']['output']>;
   /** The hash of the channel payout payload file */
   payloadHash?: Maybe<Scalars['String']['output']>;
+};
+
+export type UpdateGlobalNftLimitProposalDetails = {
+  __typename?: 'UpdateGlobalNftLimitProposalDetails';
+  /** New daily NFT limit set in the proposal (if any) */
+  newDailyNftLimit?: Maybe<Scalars['Int']['output']>;
+  /** New weekly NFT limit set in the proposal (if any) */
+  newWeeklyNftLimit?: Maybe<Scalars['Int']['output']>;
 };
 
 export type UpdateWorkingGroupBudgetProposalDetails = {

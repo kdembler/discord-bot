@@ -11,18 +11,7 @@ fragment MemberFields on Membership {
   }
   roles {
     status {
-      ... on WorkerStatusActive {
-        __typename
-      }
-      ... on WorkerStatusLeaving {
-        __typename
-      }
-      ... on WorkerStatusLeft {
-        __typename
-      }
-      ... on WorkerStatusTerminated {
-        __typename
-      }
+      __typename
     }
     groupId
     isLead
@@ -30,7 +19,12 @@ fragment MemberFields on Membership {
 }
 
 query getMembers {
-  memberships(limit: 500000) {
+  memberships(
+    limit: 500000
+    where: {
+      externalResources_some: { type_eq: DISCORD }
+    }
+  ) {
     ...MemberFields
   }
 }

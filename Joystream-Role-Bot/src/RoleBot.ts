@@ -3,7 +3,8 @@ import ready from "./listeners/ready";
 import interactionCreate from "./listeners/interactionCreate";
 import * as dotenv from "dotenv";
 import { validateEnv } from "./utils/validateEnv";
-import { setMemberRole } from "./controls/control";
+import { runUpdate } from "./controls/control";
+import { upDateBlockNumber } from "./hook/blockCalc";
 
 dotenv.config();
 
@@ -26,6 +27,6 @@ console.log("Bot is starting...");
   client.login(token);
   ready(client);
   interactionCreate(client);
-  setMemberRole(client);
-  setInterval(setMemberRole, Number(process.env.SYNCH_TIME) * 60000, client);
+  runUpdate(client);
+  setInterval(runUpdate, Number(process.env.SYNCH_TIME) * 60000, client);
 })();
