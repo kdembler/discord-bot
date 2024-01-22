@@ -1,11 +1,11 @@
 import { Client } from "discord.js";
-import {
-  MemberFieldFragment,
-  getMembers,
-} from "../query/generator/members_generate";
 import { RoleAddress } from "../RoleConfig";
+import { getMembers } from "../data.query";
+import { GetMembersQuery } from "../gql/graphql";
 
-export let qn_recive_data: MemberFieldFragment[] = [];
+type MemberFields = GetMembersQuery["memberships"][0];
+
+export let qn_recive_data: MemberFields[] = [];
 export let lastUpdateTime = "Unknown";
 
 type RoleMap = {
@@ -51,13 +51,13 @@ const roleMap: RoleMap = {
   ],
 };
 
-async function getDiscordHandleToTargetRolesMap(): Promise<
-  Record<string, string[]> {
-  const members = await getMembers();
-}
+// async function getDiscordHandleToTargetRolesMap(): Promise<
+//   Record<string, string[]> {
+//   const members = await getMembers();
+// }
 
 export const runUpdate = async (client: Client): Promise<void> => {
-  const Qndata: MemberFieldFragment[] = await getMembers();
+  const Qndata = await getMembers();
 
   const guild = client.guilds.cache.get(String(process.env.SERVER_ID));
 
@@ -73,7 +73,7 @@ export const runUpdate = async (client: Client): Promise<void> => {
   );
 
   const qnMembers = Qndata.flatMap((qnMember) => {
-    const hasDiscordHandle = qnMember.externalResources.some(
+    const hasDiscordHandle = qnMember.externalResources?.some(
       (data) => data.type === "DISCORD",
     );
 
@@ -102,7 +102,7 @@ export const runUpdate = async (client: Client): Promise<void> => {
   }
 
   const membersPromises = qnMembers.map(async (qnMember) => {
-    const memberDiscordHandle = qnMember.externalResources.find(
+    const memberDiscordHandle = qnMember.externalResources?.find(
       (data) => data.type === "DISCORD",
     )?.value;
 
@@ -279,27 +279,28 @@ interface MemberRolesAndId {
 export const getUserId = (userId: string): MemberRolesAndId | undefined => {
   if (!qn_recive_data) return;
 
-  let id: MemberFieldFragment[] = [];
+  let id: MemberFields[] = [];
   let role: string[] = [];
 
-  qn_recive_data.map((data) =>
-    data.externalResources
-      .filter((data) => data.type === "DISCORD" && data.value === userId)
-      .map(() => {
-        data.roles.map(async (groupID) => {
-          if (!roleMap[groupID.groupId]) return;
+  qn_recive_data.map(
+    (data) =>
+      data.externalResources
+        ?.filter((data) => data.type === "DISCORD" && data.value === userId)
+        .map(() => {
+          data.roles.map(async (groupID) => {
+            if (!roleMap[groupID.groupId]) return;
 
-          const [leadAddress, workerAddress] = roleMap[groupID.groupId];
-          const address = groupID.isLead ? leadAddress : workerAddress;
+            const [leadAddress, workerAddress] = roleMap[groupID.groupId];
+            const address = groupID.isLead ? leadAddress : workerAddress;
 
-          role.push(address);
-        });
+            role.push(address);
+          });
 
-        if (data.isFoundingMember) role.push(RoleAddress.foundingMember);
-        if (data.isCouncilMember) role.push(RoleAddress.councilMember);
+          if (data.isFoundingMember) role.push(RoleAddress.foundingMember);
+          if (data.isCouncilMember) role.push(RoleAddress.councilMember);
 
-        id.push(data);
-      }),
+          id.push(data);
+        }),
   );
 
   if (!id || id.length === 0) return;

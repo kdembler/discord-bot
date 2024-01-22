@@ -4,7 +4,6 @@ import interactionCreate from "./listeners/interactionCreate";
 import * as dotenv from "dotenv";
 import { validateEnv } from "./utils/validateEnv";
 import { runUpdate } from "./controls/control";
-import { upDateBlockNumber } from "./hook/blockCalc";
 
 dotenv.config();
 
@@ -24,7 +23,7 @@ console.log("Bot is starting...");
 
   const client = new Client(options);
 
-  client.login(token);
+  await client.login(token);
   ready(client);
   interactionCreate(client);
   runUpdate(client);

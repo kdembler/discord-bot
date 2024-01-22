@@ -1,6 +1,5 @@
-import { GraphQLClient } from 'graphql-request';
-import { GraphQLClientRequestHeaders } from 'graphql-request/build/cjs/types';
-import gql from 'graphql-tag';
+/* eslint-disable */
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -15,9 +14,13 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  /** GraphQL representation of BigInt */
   BigInt: { input: any; output: any; }
+  /** GraphQL representation of Bytes */
   Bytes: { input: any; output: any; }
+  /** The javascript `Date` as string. Type represents date and time as the ISO Date string. */
   DateTime: { input: any; output: any; }
+  /** The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSONObject: { input: any; output: any; }
 };
 
@@ -14862,6 +14865,7 @@ export type MemberMetadata = BaseGraphQlObject & {
   name?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   updatedById?: Maybe<Scalars['ID']['output']>;
+  validatorAccount?: Maybe<Scalars['String']['output']>;
   version: Scalars['Int']['output'];
 };
 
@@ -14877,6 +14881,7 @@ export type MemberMetadataCreateInput = {
   avatar: Scalars['JSONObject']['input'];
   isVerifiedValidator?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  validatorAccount?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MemberMetadataEdge = {
@@ -14897,7 +14902,9 @@ export enum MemberMetadataOrderByInput {
   NameAsc = 'name_ASC',
   NameDesc = 'name_DESC',
   UpdatedAtAsc = 'updatedAt_ASC',
-  UpdatedAtDesc = 'updatedAt_DESC'
+  UpdatedAtDesc = 'updatedAt_DESC',
+  ValidatorAccountAsc = 'validatorAccount_ASC',
+  ValidatorAccountDesc = 'validatorAccount_DESC'
 }
 
 export type MemberMetadataUpdateInput = {
@@ -14905,6 +14912,7 @@ export type MemberMetadataUpdateInput = {
   avatar?: InputMaybe<Scalars['JSONObject']['input']>;
   isVerifiedValidator?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  validatorAccount?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MemberMetadataWhereInput = {
@@ -14967,6 +14975,11 @@ export type MemberMetadataWhereInput = {
   updatedAt_lte?: InputMaybe<Scalars['DateTime']['input']>;
   updatedById_eq?: InputMaybe<Scalars['ID']['input']>;
   updatedById_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  validatorAccount_contains?: InputMaybe<Scalars['String']['input']>;
+  validatorAccount_endsWith?: InputMaybe<Scalars['String']['input']>;
+  validatorAccount_eq?: InputMaybe<Scalars['String']['input']>;
+  validatorAccount_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  validatorAccount_startsWith?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MemberMetadataWhereUniqueInput = {
@@ -15696,7 +15709,6 @@ export enum MembershipExternalResourceType {
   Discord = 'DISCORD',
   Email = 'EMAIL',
   Facebook = 'FACEBOOK',
-  Github = 'GITHUB',
   Hyperlink = 'HYPERLINK',
   Irc = 'IRC',
   Linkedin = 'LINKEDIN',
@@ -37339,55 +37351,7 @@ export type WorkingGroupWhereUniqueInput = {
 export type GetMembersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMembersQuery = { __typename?: 'Query', memberships: Array<{ __typename?: 'Membership', handle: string, id: string, isFoundingMember: boolean, isCouncilMember: boolean, rootAccount: string, roles: Array<{ __typename?: 'Worker', groupId: string, isLead: boolean, status: { __typename: 'WorkerStatusActive' } | { __typename: 'WorkerStatusLeaving' } | { __typename: 'WorkerStatusLeft' } | { __typename: 'WorkerStatusTerminated' } }> }> };
-
-export type MemberFieldsFragment = { __typename?: 'Membership', handle: string, id: string, isFoundingMember: boolean, isCouncilMember: boolean, rootAccount: string, roles: Array<{ __typename?: 'Worker', groupId: string, isLead: boolean, status: { __typename: 'WorkerStatusActive' } | { __typename: 'WorkerStatusLeaving' } | { __typename: 'WorkerStatusLeft' } | { __typename: 'WorkerStatusTerminated' } }> };
-
-export const MemberFieldsFragmentDoc = gql`
-    fragment MemberFields on Membership {
-  handle
-  id
-  isFoundingMember
-  isCouncilMember
-  rootAccount
-  roles {
-    status {
-      ... on WorkerStatusActive {
-        __typename
-      }
-      ... on WorkerStatusLeaving {
-        __typename
-      }
-      ... on WorkerStatusLeft {
-        __typename
-      }
-      ... on WorkerStatusTerminated {
-        __typename
-      }
-    }
-    groupId
-    isLead
-  }
-}
-    `;
-export const GetMembersDocument = gql`
-    query getMembers {
-  memberships(limit: 50000) {
-    ...MemberFields
-  }
-}
-    ${MemberFieldsFragmentDoc}`;
-
-export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
+export type GetMembersQuery = { __typename?: 'Query', memberships: Array<{ __typename?: 'Membership', handle: string, id: string, createdAt: any, isFoundingMember: boolean, isCouncilMember: boolean, rootAccount: string, externalResources?: Array<{ __typename?: 'MembershipExternalResource', type: MembershipExternalResourceType, value: string }> | null, roles: Array<{ __typename?: 'Worker', groupId: string, isLead: boolean, status: { __typename: 'WorkerStatusActive' } | { __typename: 'WorkerStatusLeaving' } | { __typename: 'WorkerStatusLeft' } | { __typename: 'WorkerStatusTerminated' } }> }> };
 
 
-const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType) => action();
-
-export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
-  return {
-    getMembers(variables?: GetMembersQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<GetMembersQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetMembersQuery>(GetMembersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getMembers', 'query');
-    }
-  };
-}
-export type Sdk = ReturnType<typeof getSdk>;
+export const GetMembersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getMembers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"memberships"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"500000"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"externalResources_some"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"type_eq"},"value":{"kind":"EnumValue","value":"DISCORD"}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"handle"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"isFoundingMember"}},{"kind":"Field","name":{"kind":"Name","value":"isCouncilMember"}},{"kind":"Field","name":{"kind":"Name","value":"rootAccount"}},{"kind":"Field","name":{"kind":"Name","value":"externalResources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"value"}}]}},{"kind":"Field","name":{"kind":"Name","value":"roles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}}]}},{"kind":"Field","name":{"kind":"Name","value":"groupId"}},{"kind":"Field","name":{"kind":"Name","value":"isLead"}}]}}]}}]}}]} as unknown as DocumentNode<GetMembersQuery, GetMembersQueryVariables>;
