@@ -1,7 +1,6 @@
 export const RoleAddress = {
   councilMember: "978992033475756072",
-  foundingMember: "812346039856005120",
-  creator: "1119236317772001420",
+  // foundingMember: "812346039856005120",
   contentWorkingGroup: "942454807266988112",
   contentWorkingGroupLead: "979000590761881641",
   forumWorkingGroup: "979001885568696391",
@@ -21,5 +20,5 @@ export const RoleAddress = {
   operationsWorkingGroupGamma: "979002458074386535",
   operationsWorkingGroupGammaLead: "942455426891542578",
   membershipLinked: "979700961125748756",
-  DAO: "1194725039149420584"
+  DAO: "1194725039149420584",
 };

@@ -1,6 +1,17 @@
 import { CommandInteraction, Client } from "discord.js";
 import { Command } from "../Command";
 import { lastUpdateTime, qn_recive_data } from "../controls/control";
+import pkgDir from "pkg-dir";
+import fs from "node:fs";
+
+const getPkgVersion = () => {
+  const packageJsonPath = `${pkgDir.sync()}/package.json`;
+  const data = fs.readFileSync(packageJsonPath, "utf8");
+  const packageJson = JSON.parse(data);
+  return packageJson.version;
+};
+
+const pkgVersion = getPkgVersion();
 
 export const Status: Command = {
   name: "status",
@@ -11,7 +22,6 @@ export const Status: Command = {
 
     const guild = client.guilds.cache.get(String(process.env.SERVER_ID));
     let status: string = "";
-    let rpcStatus: string = "";
 
     if (!guild) {
       emptyRole = "Discord Server not found.";
@@ -34,16 +44,13 @@ export const Status: Command = {
       }
     }
 
-    const content: string = `
+    const content: string = `${emptyRole}
 
-    ${emptyRole}\n
+QN status ${status}
 
-    QN status ${status}
-    
-    Last update time: ${lastUpdateTime}
-    
-    Version :${process.env.VERSION}
-    `;
+Last update time: ${lastUpdateTime}
+
+Version: ${pkgVersion}`;
 
     await interaction.followUp({
       content,

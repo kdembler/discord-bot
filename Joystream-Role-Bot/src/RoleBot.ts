@@ -26,6 +26,6 @@ console.log("Bot is starting...");
   await client.login(token);
   ready(client);
   interactionCreate(client);
-  runUpdate(client);
+  await runUpdate(client);
   setInterval(runUpdate, Number(process.env.SYNCH_TIME) * 60000, client);
 })();

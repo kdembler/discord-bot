@@ -51,13 +51,89 @@ const roleMap: RoleMap = {
   ],
 };
 
-// async function getDiscordHandleToTargetRolesMap(): Promise<
-//   Record<string, string[]> {
-//   const members = await getMembers();
-// }
+type MemberInfo = {
+  isCouncilMember: boolean;
+  isFoundingMember: boolean;
+  activeRoles: MemberFields["roles"];
+};
+async function getDiscordHandleToTargetRolesMap(): Promise<
+  Record<string, string[]>
+> {
+  const members = await getMembers();
+
+  // get all members for a given discord handle
+  const discordHandleToMembersMap: Record<string, MemberFields[]> = {};
+  members.forEach((member) => {
+    const discordHandle = member.externalResources?.find(
+      (data) => data.type === "DISCORD",
+    )?.value;
+    if (!discordHandle) return;
+    if (!discordHandleToMembersMap[discordHandle]) {
+      discordHandleToMembersMap[discordHandle] = [];
+    }
+    discordHandleToMembersMap[discordHandle].push(member);
+  });
+
+  // TODO: refactor - this is currently used to share QN data with other commands
+  qn_recive_data = members;
+
+  // get parsed info for a given discord handle
+  const discordHandleToMemberInfoMap: Record<string, MemberInfo> = {};
+  Object.entries(discordHandleToMembersMap).forEach(
+    ([discordHandle, members]) => {
+      const isCouncilMember = members.some((member) => member.isCouncilMember);
+      const isFoundingMember = members.some(
+        (member) => member.isFoundingMember,
+      );
+      const activeRoles = members.flatMap((member) =>
+        member.roles.filter(
+          (group) => group.status.__typename === "WorkerStatusActive",
+        ),
+      );
+      discordHandleToMemberInfoMap[discordHandle] = {
+        isCouncilMember,
+        isFoundingMember,
+        activeRoles,
+      };
+    },
+  );
+
+  // get target roles for a given discord handle
+  const discordHandleToTargetRolesMap: Record<string, string[]> = {};
+  Object.entries(discordHandleToMemberInfoMap).forEach(
+    ([discordHandle, memberInfo]) => {
+      const targetRoles: string[] = [];
+      targetRoles.push(RoleAddress.membershipLinked);
+      if (memberInfo.isCouncilMember) {
+        targetRoles.push(RoleAddress.councilMember);
+      }
+      if (memberInfo.isCouncilMember || memberInfo.activeRoles.length > 0) {
+        targetRoles.push(RoleAddress.DAO);
+      }
+      // if (memberInfo.isFoundingMember) {
+      //   targetRoles.push(RoleAddress.foundingMember);
+      // }
+      memberInfo.activeRoles.forEach((role) => {
+        const mappedRoles = roleMap[role.groupId];
+        if (!mappedRoles) return;
+        const [leadRoleId, workerRoleId] = mappedRoles;
+        if (!targetRoles.includes(workerRoleId)) {
+          targetRoles.push(workerRoleId);
+        }
+        if (role.isLead) {
+          targetRoles.push(leadRoleId);
+        }
+      });
+
+      discordHandleToTargetRolesMap[discordHandle] = targetRoles;
+    },
+  );
+
+  return discordHandleToTargetRolesMap;
+}
 
 export const runUpdate = async (client: Client): Promise<void> => {
-  const Qndata = await getMembers();
+  console.log("Discord server update start...");
 
   const guild = client.guilds.cache.get(String(process.env.SERVER_ID));
 
@@ -67,205 +143,77 @@ export const runUpdate = async (client: Client): Promise<void> => {
   }
 
   await guild.members.fetch();
+  await guild.roles.fetch();
 
   const discordMembers = guild.members.cache.filter(
     (member) => !member.user.bot,
   );
 
-  const qnMembers = Qndata.flatMap((qnMember) => {
-    const hasDiscordHandle = qnMember.externalResources?.some(
-      (data) => data.type === "DISCORD",
-    );
-
-    if (!hasDiscordHandle) return [];
-
-    return qnMember;
-  });
-
-  // TODO: refactor - this is currently used to share QN data with other commands
-  qn_recive_data = qnMembers;
-
-  if (qnMembers.length === 0) return;
-
-  const daoRole = await guild.roles.fetch(RoleAddress.DAO);
-
-  if (!daoRole) {
-    console.log(`<@&${daoRole}> Role not found`);
-    return;
-  }
-
-  const linkRole = await guild.roles.fetch(RoleAddress.membershipLinked);
-
-  if (!linkRole) {
-    console.log(`<@&${RoleAddress.membershipLinked}> Role not found`);
-    return;
-  }
-
-  const membersPromises = qnMembers.map(async (qnMember) => {
-    const memberDiscordHandle = qnMember.externalResources?.find(
-      (data) => data.type === "DISCORD",
-    )?.value;
-
-    if (!memberDiscordHandle) {
-      console.log("Discord handle not found");
+  // ensure all roles exist
+  for (const [roleKey, roleAddress] of Object.entries(RoleAddress)) {
+    if (!guild.roles.cache.has(roleAddress)) {
+      console.log(`${roleKey} (${roleAddress}) Role not found.`);
       return;
     }
+  }
 
-    const discordMember = discordMembers.find(
-      (member) => member.user.username === memberDiscordHandle,
+  // get all Discord members that have a role managed by the bot
+  const managedRoles = Object.values(RoleAddress);
+  const discordMembersWithManagedRoles = discordMembers.filter((member) =>
+    member.roles.cache.some((role) => managedRoles.includes(role.id)),
+  );
+
+  // get all QN members that have a Discord handle with their target roles
+  const discordHandleToTargetRolesMap =
+    await getDiscordHandleToTargetRolesMap();
+
+  const DEBUG = true;
+
+  const added: string[] = [];
+  const removed: string[] = [];
+
+  // update Discord members
+  const updatePromises = discordMembersWithManagedRoles.map(async (member) => {
+    const discordHandle = member.user.username;
+    const targetRoles = discordHandleToTargetRolesMap[discordHandle] || [];
+    const currentRoles = member.roles.cache
+      .map((role) => role.id)
+      .filter((id) => managedRoles.includes(id));
+    const rolesToAdd = targetRoles.filter(
+      (role) => !currentRoles.includes(role),
     );
-
-    if (!discordMember) {
-      return;
-    }
-
-    const DEBUG = true;
-    const addMemberRole = async (role: string) => {
+    const rolesToRemove = currentRoles.filter(
+      (role) => !targetRoles.includes(role),
+    );
+    const addRolePromises = rolesToAdd.map((role) => {
       if (DEBUG) {
-        console.log(`Adding <@&${role}> role to ${qnMember.id}`);
+        added.push(
+          `Adding ${guild.roles.cache.get(role)
+            ?.name} role to ${discordHandle}`,
+        );
       } else {
-        await discordMember.roles.add(role);
-      }
-    };
-
-    const removeMemberRole = async (role: string) => {
-      if (DEBUG) {
-        console.log(`Removing <@&${role}> role from ${qnMember.id}`);
-      } else {
-        await discordMember.roles.remove(role);
-      }
-    };
-
-    const discordMemberAllRolesIds = discordMember.roles.cache.map(
-      (role) => role.id,
-    );
-    const roleAddressArray: string[] = Object.values(RoleAddress);
-    const discordMemberRolesIdsLookup = discordMemberAllRolesIds.reduce(
-      (acc, roleId) => {
-        if (roleAddressArray.includes(roleId)) {
-          acc[roleId] = true;
-        }
-        return acc;
-      },
-      {} as Record<string, boolean>,
-    );
-
-    if (!discordMemberRolesIdsLookup[RoleAddress.membershipLinked]) {
-      await addMemberRole(RoleAddress.membershipLinked);
-    }
-
-    const qnMemberActiveRoles = qnMember.roles.filter(
-      (group) => group.status.__typename === "WorkerStatusActive",
-    );
-
-    let worker = false;
-
-    const qnMemberActiveRolesIds: string[] = [];
-
-    const memberRolesPromises = qnMemberActiveRoles.map(async (role) => {
-      const mappedRoles = roleMap[role.groupId];
-
-      if (!mappedRoles) {
-        return;
-      }
-      const [leadRoleId, workerRoleId] = mappedRoles;
-
-      const workerDiscordRole = await guild.roles.fetch(workerRoleId);
-
-      if (!workerDiscordRole) {
-        console.log(`<@&${workerRoleId}> Role not found`);
-        return;
-      }
-      if (!discordMemberRolesIdsLookup[workerRoleId]) {
-        await addMemberRole(workerRoleId);
-        discordMemberRolesIdsLookup[workerRoleId] = true;
-      }
-      qnMemberActiveRolesIds.push(workerRoleId);
-      worker = true;
-
-      if (role.isLead) {
-        const leadDiscordRole = await guild.roles.fetch(leadRoleId);
-
-        if (!leadDiscordRole) {
-          console.log(`<@&${leadRoleId}> Role not found`);
-          return;
-        }
-        if (!discordMemberRolesIdsLookup[leadRoleId]) {
-          await addMemberRole(leadRoleId);
-          discordMemberRolesIdsLookup[leadRoleId] = true;
-        }
-        qnMemberActiveRolesIds.push(leadRoleId);
+        return member.roles.add(role);
       }
     });
-
-    await Promise.all(memberRolesPromises);
-
-    const terminatedRoles = Object.keys(discordMemberRolesIdsLookup)
-      .filter(
-        (roleId) =>
-          roleId !== RoleAddress.councilMember &&
-          roleId !== RoleAddress.foundingMember &&
-          roleId !== RoleAddress.membershipLinked &&
-          roleId !== RoleAddress.DAO,
-      )
-      .filter((item) => !qnMemberActiveRolesIds.includes(item));
-    const terminatedRolesPromises = terminatedRoles.map((id) =>
-      removeMemberRole(id),
-    );
-    await Promise.all(terminatedRolesPromises);
-
-    if (
-      (worker || qnMember.isCouncilMember) &&
-      !discordMemberRolesIdsLookup[RoleAddress.DAO]
-    ) {
-      await addMemberRole(RoleAddress.DAO);
-    }
-    if (
-      !(worker || qnMember.isCouncilMember) &&
-      discordMemberRolesIdsLookup[RoleAddress.DAO]
-    ) {
-      await removeMemberRole(RoleAddress.DAO);
-    }
-
-    // FMs, CMs
-    const specialRoles = [
-      // {
-      //   roleId: RoleAddress.foundingMember,
-      //   isActive: qnMember.isFoundingMember,
-      // },
-      {
-        roleId: RoleAddress.councilMember,
-        isActive: qnMember.isCouncilMember,
-      },
-    ];
-
-    const specialRolesPromises = specialRoles.map(async (specialRole) => {
-      const role = await guild.roles.fetch(specialRole.roleId);
-
-      if (!role) {
-        console.log(`<@&${specialRole.roleId}> Role not found`);
-        return;
-      }
-
-      if (
-        specialRole.isActive &&
-        !discordMemberRolesIdsLookup[specialRole.roleId]
-      ) {
-        await addMemberRole(specialRole.roleId);
-      }
-
-      if (
-        !specialRole.isActive &&
-        discordMemberRolesIdsLookup[specialRole.roleId]
-      ) {
-        await removeMemberRole(specialRole.roleId);
+    const removeRolePromises = rolesToRemove.map((role) => {
+      if (DEBUG) {
+        removed.push(
+          `Removing ${guild.roles.cache.get(role)
+            ?.name} role from ${discordHandle}`,
+        );
+      } else {
+        return member.roles.remove(role);
       }
     });
-
-    await Promise.all(specialRolesPromises);
+    await Promise.all([...addRolePromises, ...removeRolePromises]);
   });
 
-  await Promise.all(membersPromises);
+  await Promise.all(updatePromises);
+
+  if (DEBUG) {
+    console.log(added.join("\n"));
+    console.log(removed.join("\n"));
+  }
 
   console.log("Discord server update finish!");
   lastUpdateTime = new Date().toLocaleString();
@@ -296,7 +244,7 @@ export const getUserId = (userId: string): MemberRolesAndId | undefined => {
             role.push(address);
           });
 
-          if (data.isFoundingMember) role.push(RoleAddress.foundingMember);
+          // if (data.isFoundingMember) role.push(RoleAddress.foundingMember);
           if (data.isCouncilMember) role.push(RoleAddress.councilMember);
 
           id.push(data);
