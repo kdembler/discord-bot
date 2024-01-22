@@ -216,7 +216,7 @@ export const runUpdate = async (client: Client): Promise<void> => {
   }
 
   console.log("Discord server update finish!");
-  lastUpdateTime = new Date().toLocaleString();
+  lastUpdateTime = new Date().toISOString();
 };
 
 interface MemberRolesAndId {

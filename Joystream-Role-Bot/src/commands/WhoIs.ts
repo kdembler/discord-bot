@@ -35,24 +35,24 @@ export const WhoIs: Command = {
 
       if (!member) {
         content = `Discord name: Oops, this member does not exist :grimacing: 
-        To create a membership with Pioneer Governance, please go to the app page https://pioneerapp.xyz/#/profile/memberships `;
+To create a membership with Pioneer Governance, please go to the app page https://pioneerapp.xyz/#/profile/memberships `;
       } else {
         const memberId = getUserId(member.user.username);
 
         if (memberId) {
           if (memberId.roles?.length == 0) {
             content = `Discord name:  <@${userId}> \n
-            Joystream Member ID:  ${memberId.id} \n
-            On-chain roles: This Member does not have any role on-chain :frowning2: 
+Joystream Member ID:  ${memberId.id} \n
+On-chain roles: This Member does not have any role on-chain :frowning2: 
             `;
           } else {
             content = `Discord name:  <@${userId}> \n
-            Joystream Member ID:  ${memberId.id} \n
-            On-chain roles:<@&${memberId.roles?.join(">, <@&")}>`;
+Joystream Member ID:  ${memberId.id} \n
+On-chain roles:<@&${memberId.roles?.join(">, <@&")}>`;
           }
         } else {
           content = `Discord name:  <@${userId}> \n
-          Hey   <@${userId}> ! To link your Discord account to your Joystream membership, please go to the Pioneer Governance app and update your membership data https://pioneerapp.xyz/#/profile/memberships  \n
+Hey   <@${userId}> ! To link your Discord account to your Joystream membership, please go to the Pioneer Governance app and update your membership data https://pioneerapp.xyz/#/profile/memberships  \n
           `;
         }
       }
